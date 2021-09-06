@@ -9,7 +9,7 @@ const db = mysql.createConnection(
       password: 'Raisin13.sql!',
       database: 'employee_manager'
     },
-    console.log('Connected to the election database.')
+    console.log('Connected to the employee_manager database.')
   );
 
   module.exports = db;

@@ -4,6 +4,7 @@ const db = require('./db/connection');
 const inquirer = require('inquirer');
 //const Connection = require('mysql2/typings/mysql/lib/Connection');
 
+// !!!! this needs to display first 
 db.connect((error) => {
   if(error) throw error;
   console.log(`
@@ -53,6 +54,12 @@ function promptUser(){
       updateEmployeeRole();
     }
   })
-}
+};
 
+
+
+
+
+
+//init inquirer prompt
 promptUser();

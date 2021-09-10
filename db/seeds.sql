@@ -1,17 +1,29 @@
 INSERT INTO departments (name)
-VALUES
-('Sales'), ('Customer Service'), ('Legal'), ('Engineering');
+VALUES 
+('IT'),
+('Finance & Accounting'),
+('Sales & Marketing'),
+('Operations');
 
 INSERT INTO roles (title, salary, department_id)
-VALUES ('Sales Rep', 25.40, 1), ('Receptionist', 20.00, 2), ('Team Council', 75.50, 3), ('Engineer', 50.00, 1);
+VALUES
+('Full Stack Developer', 80000, 1),
+('Software Engineer', 120000, 1),
+('Accountant', 10000, 2), 
+('Finanical Analyst', 150000, 2),
+('Marketing Coordindator', 70000, 3), 
+('Sales Lead', 90000, 3),
+('Project Manager', 100000, 4),
+('Operations Manager', 90000, 4);
 
-/*manager id references the employee id of a manager ie a role_id of 4 so carol u r manager today! underlings will have a manager_id of 2 in this case*/
-/*no manager id for bossman bc he has no manager*/
+
 INSERT INTO employees (first_name, last_name, role_id, manager_id)
 VALUES 
-('Joe', 'Shmoe', 1, 3),
- ('Jay', 'Say', 1, 3), 
- ('Peyton', 'Manning', 4, null), 
- ('Jody', 'Beehive', 2, 5), 
- ('Larry', 'Legal', 3, null);
-
+('Mark', 'Miller', 2, null),
+('Devin', 'Anderson', 1, 1),
+('Mary', 'Brown', 4, null),
+('Ashley', 'Jones', 3, 3),
+('Tyler', 'Moore', 6, null),
+('Ana', 'Sanchez', 5, 5),
+('Lewis', 'Allen', 7, null),
+('Katherine', 'Green', 8, 7);

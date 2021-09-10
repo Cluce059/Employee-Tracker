@@ -38,14 +38,24 @@ function promptUser (){
     ]
 })
 .then(choice => {
+  console.log(choice);
   switch(choice.menu){
     case options.viewAllEmployees:
       viewAllEmployees();
       break;
+    case options.viewEmployeesByManager:
+      viewEmployeesByManager();
+      break;
+    case options.viewEmployeesByDepartment:
+      viewEmployeesByDepartment();
+      break;
+    case options.addEmployee:
+      addEmployee();
+      break;
   }
 
   /*
-  console.log('choice',choice);
+  
   switch(choice){
     case 'View all employees':
       viewAllEmployees();
@@ -79,12 +89,9 @@ function promptUser (){
 function viewAllEmployees() {
   const query = `SELECT employees.id, employees.first_name, 
   employees.last_name, roles.title, departments.name AS department, 
-  roles.salary, CONCAT(manager.first_name, ' ', manager.last_name) AS manager
-  FROM employees
-  LEFT JOIN employees manager on manager.id = employees.manager_id
-  INNER JOIN roles ON (roles.id = employees.role_id)
-  INNER JOIN departments ON (departments.id = roles.department_id)
-  ORDER BY employees.id;`;
+  roles.salary FROM employees, roles, departments WHERE departments.id = roles.department_id  
+  AND roles.id = employees.role_id 
+  ORDER BY employees.id ASC`;
   db.query(query, (err, res) => {
     if (err) throw err;
     console.log('\n');
@@ -95,5 +102,46 @@ function viewAllEmployees() {
 });
 };
 
+//function to view employees by manager name
+//not quit sure about this query
+function viewEmployeesByManager(){
+  const query  = `SELECT employees.first_name, 
+  employees.last_name, 
 
+  employees.first_name AS manager WHERE employees.manager_id = NULL,
+
+  FROM employees LEFT JOIN roles ON employees.role_id = roles.id
+  LEFT JOIN departments ON roles.department_id = departments.id`;
+  db.query(query, (err, res) => {
+    if(err) throw err;
+    console.table(res);
+    promptUser();
+  });
+};
+
+//
+function viewEmployeesByDepartment(){
+  const query  = `SELECT employees.first_name, 
+  employees.last_name, 
+  departments.name AS department
+  FROM employees LEFT JOIN roles ON employees.role_id = roles.id
+  LEFT JOIN departments ON roles.department_id = departments.id`;
+  db.query(query, (err, res) => {
+    if(err) throw err;
+    console.table(res);
+    promptUser();
+  });
+};
+
+//function to add an employee
+function addEmployee(){
+  inquirer.prompt([
+    {
+      type: 'input',
+      name: 'first_name',
+      message: 'Enter employee first name: ';
+      validate: addf
+    }
+  ])
+};
 

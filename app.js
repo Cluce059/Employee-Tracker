@@ -103,7 +103,7 @@ function viewAllEmployees() {
 };
 
 //function to view employees by manager name
-//not quit sure about this query
+//not quite sure about this query
 function viewEmployeesByManager(){
   const query  = `SELECT employees.first_name, 
   employees.last_name, 
@@ -132,83 +132,79 @@ function viewEmployeesByDepartment(){
     promptUser();
   });
 };
+///////////////////////////////////////////////////////////////////////
+//creds to cmelby for the idea for seperate functions to select a role an manager for new employee
 
-//function to add an employee
-function addEmployee() {
-  inquirer.prompt([
-    {
-      type: 'input',
-      name: 'first_name',
-      message: 'Enter employee first name: ',
-      validate: addFirstName =>{
-        if(addFirstName){
-          return true;
-        } else {
-          console.group('Please enter employee first name: ');
-          return false;
-        }
-      }
-    },
-    {
-      type: 'input',
-      name: 'last_name',
-      message: 'Enter employee last name: ',
-      validate: addLastName =>{
-        if(addLastName){
-          return true;
-        } else {
-          console.log('Please enter employee last name');
-          return false;
-        }
-      }
+//function to show user all role options in inquirer prompt
+const rolesArr = [];
+function displayRoles() {
+  db.query("SELECT * FROM roles", function(err, res) {
+    if (err) throw err;
+    for (let i = 0; i < res.length; i++) {
+      rolesArr.push(res[i].title);
     }
-  ])
-    .then(function(answer) {
-      //console.log(answer.last_name);
-      const newEmp = [answer.first_name, answer.last_name];
-      const roleQuery = `SELECT roles.id, roles.title FROM roles`;
-      //console.log(roleQuery);
-      db.promise().query(roleQuery, (error, res) => {
-        if(error) throw (error);
-        const roleOptions = res.map(({ id, title }) => ({ name: title, value: id}));
-        inquirer.prompt([
-          {
-            type: 'list',
-            name: 'role',
-            message: 'Choose employee role: ',
-            choices: roleOptions
-          }
-        ])
-        .then(chosenRole =>{
-          //.roles? if err?
-          const newEmpRole = chosenRole.roles;
-          newEmp.push(newEmpRole);
-          const managerQuery = `SELECT * FROM employees`;
-          db.promise().query(managerQuery, (err, res) =>{
-            if(err) throw err;
-            const managerOptions = data.map(({ id, first_name, last_name }) => ({ name: first_name + ' ' + last_name, valude: id }));
-            inquirer.prompt([
-              {
-                type: 'list',
-                name: 'manager',
-                messsage: 'Choose a manager for the new employee: ',
-                choices: managerOptions
-              }
-            ])
-            .then(chosenManager =>{
-              const manager = chosenManager.manager;
-              newEmp.push(manager);
-              const newEmpSQL = `INSERT INTO employees (first_name, last_name, role_id, manager_id)
-              VALUES (?, ?, ?, ?)`;
-              db.query(newEmpSQL, newEmp, (err) => {
-                if(err) throw err;
-                console.log('Employee Added.')
-                viewAllEmployees();
-              });
-            });
-          });
-        });
-      });
-    });
+  })
+  return rolesArr;
 };
 
+//function to show user manager options in inquirer prompt
+var managersArr = [];
+function displayManagers() {
+  //if manager_id === null theyre a manager
+  db.query("SELECT first_name, last_name FROM employees WHERE manager_id IS NULL", function(err, res) {
+    if (err) throw err;
+    for (let i = 0; i < res.length; i++) {
+      managersArr.push(res[i].first_name);
+    }
+  })
+  return managersArr;
+};
+
+//function to add an employee
+function addEmployee() { 
+  inquirer.prompt([
+      {
+        name: "first_name",
+        type: "input",
+        message: "Enter employee's first name: "
+      },
+      {
+        name: "last_name",
+        type: "input",
+        message: "Enter employee's last name: "
+      },
+      {
+        name: "role",
+        type: "list",
+        message: "Enter employee's role:  ",
+        choices: displayRoles()
+      },
+      {
+        name: "choice",
+        type: "list",
+        message: "Select employee's manager: ",
+        choices: displayManagers()
+      }
+  ])
+  .then(function (values) {
+    //+1 bc otherwise youll not be able to add to child table
+    var chosenRole = displayRoles().indexOf(values.role) +1;
+    var chosenManager = displayManagers().indexOf(values.choice) + 1;
+    console.log(values.first_name);
+    console.log(values.lastName);
+    //? == user selection
+    db.query("INSERT INTO employees SET ?", 
+    {
+        first_name: values.first_name,
+        last_name: values.last_name,
+        manager_id: chosenManager,
+        role_id: chosenRole
+        
+    }, 
+    function(err){
+        if (err) throw err
+        console.table(values)
+        promptUser();
+    })
+})
+};

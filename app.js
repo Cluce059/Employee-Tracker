@@ -96,16 +96,15 @@ function viewAllEmployees() {
 //function to view employees by manager name
 //not quite sure about this query
 function viewEmployeesByManager(){
-  const query  = `SELECT employees.first_name, 
-  employees.last_name, 
-
-  employees.first_name AS manager WHERE employees.manager_id = NULL,
-
-  FROM employees LEFT JOIN roles ON employees.role_id = roles.id
-  LEFT JOIN departments ON roles.department_id = departments.id`;
+  const query  = 
+  `SELECT employees.first_name, employees.last_name, first_name FROM employees WHERE employees.manager_id IS  NULL;`;
+  //LEFT JOIN roles ON employees.role_id = roles.id
+  //LEFT JOIN departments ON roles.department_id = departments.id
+  
   db.query(query, (err, res) => {
     if(err) throw err;
     console.table(res);
+    //console.log(res);
     promptUser();
   });
 };
@@ -459,10 +458,9 @@ function removeRolePrompt(roles, roleTitles){
       }, 
       (err, res) => {
           if (err) throw err;
-          promptUser();
-      });
-  
+          //promptUser();
+      });  
       promptUser();
-  
+
   });
 };

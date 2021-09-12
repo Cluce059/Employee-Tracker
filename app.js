@@ -79,7 +79,7 @@ function promptUser (){
   });
 };
 
-//function to view all employeesf
+//function to view all employees
 function viewAllEmployees() {
   const query = `SELECT employees.id, employees.first_name, 
   employees.last_name, roles.title, departments.name AS department, 
@@ -88,9 +88,6 @@ function viewAllEmployees() {
   ORDER BY employees.id ASC`;
   db.query(query, (err, res) => {
     if (err) throw err;
-    console.log('\n');
-    console.log('VIEW ALL EMPLOYEES');
-    console.log('\n');
     console.table(res);
     promptUser();
 });
@@ -153,19 +150,6 @@ function displayManagers() {
   return managersArr;
 };
 
-// const employeesArr= [];
-// function displayEmployees() {
-//   db.query(`SELECT first_name, last_name FROM employees`, function (err, res) {
-//     if(err) throw err;
-//     for(let i = 0; i < res.length; i++){
-//       employeesArr.push(res[i].first_name);
-//       // res[i].last_name
-//     }
-//   })
-//   return employeesArr;
-// };
-
-
 function displayEmployees() {
   let employeesArr = [];
   //if manager_id === null theyre a manager
@@ -221,12 +205,19 @@ function getDepartments() {
   });
 };
 
+function getRoles() {
+  return new Promise((resolve, reject) => {
+      db.query(`SELECT roles.title FROM roles`, (err, res) => {
+          if (err) {
+              return reject(err);
+          }
+          return resolve(res);
+      })
+  });
+};
+
 function viewRoles() {
-  const query = `SELECT roles.title, employees.id, employees.first_name, employees.last_name, departments.name AS department
-  FROM employees
-  LEFT JOIN roles ON (roles.id = employees.role_id)
-  LEFT JOIN departments ON (departments.id = roles.department_id)
-  ORDER BY roles.title;`;
+  const query = `SELECT roles.title FROM roles ORDER BY roles.title`;
   db.query(query, (err, res) => {
       if (err) throw err;
       console.table(res);
@@ -295,14 +286,15 @@ function removeEmployee() {
           employeesData.push(res[i]);
           employeesNames.push(res[i].last_name)
       }
-      removeEmployeePrompt(employeesData, employeesNames)
+      removeEmployeePrompt(employeesData, employeesNames);
+      //separation of concerns
   })
   //async will require a .catch block, unlike reg promise staments that can just thore the error
   .catch(err => {
       console.log(err);
   })
 };
-
+//helper function to remove chosen employee from db
 function removeEmployeePrompt(employees, employeesNames) {
   inquirer.prompt([
       {
@@ -325,31 +317,24 @@ function removeEmployeePrompt(employees, employeesNames) {
                   employeeId = employees[i].id;
               }
           }
-          //seperate function for debugging
-          //dekete by id
-          deleteEmployee(employeeId);
+          db.query(`DELETE FROM employees WHERE ?`, {
+            //key: value
+            id: employeeId
+          }, 
+          (err, res) => {
+              if (err) throw err;
+              promptUser();
+          });
       } else {
           promptUser();
       }
   });
 };
 
-function deleteEmployee(employeeId) {
-  db.query(`DELETE FROM employees WHERE ?`, {
-    //key: value
-    id: employeeId
-  }, 
-  (err, res) => {
-      if (err) throw err;
-      promptUser();
-  });
-};
 
-
-//TO DO: tidy up here
-//trying something different asyc function...() for update employee role
+//trying something different asyc function () for update employee role awaits res from db before updating (to verify that empoyee is valid in the first place)
 async function updateEmployeeRole(){
-  //use utility function to get employee id for role update
+  //use utility function section to get employee id for role update
   const employeeId = await inquirer.prompt(empId());
 
   db.query('SELECT roles.id, roles.title FROM roles ORDER BY roles.id;', async (err, res) => {
@@ -363,13 +348,14 @@ async function updateEmployeeRole(){
           }
       ]);
       let roleId;
-      //row
+      //fore each row fo resulting data
       for (const row of res) {
           if (row.title === role) {
               roleId = row.id;
               continue;
           }
       }
+      //user input in template literal
       db.query(`UPDATE employees SET role_id = ${roleId}
       WHERE employees.id = ${employeeId.name}`, async (err, res) => {
           if (err) throw err;
@@ -378,13 +364,13 @@ async function updateEmployeeRole(){
   });
 };
 
-
-
+//function that adds new role to roles
 function addRole() {
   const dep = [];
   getDepartments()
   .then(data => {
-          for (let i=0; i<data.length; i++) {
+          for (let i = 0; i < data.length; i++) {
+            //console.log(data);
             //push the new role to the departments table
               dep.push(data[i])
           }
@@ -397,32 +383,23 @@ function addRole() {
       {
           type: 'input',
           name: 'title',
-          message: 'What is the title of the new role?',
-          default: () => {},
-          validate: title => {
-              let valid = /^[a-zA-Z0-9 ]{1,30}$/.test(title);
-              if (valid) {
-                  return true;
-              } else {
-                  console.log(`. Your title must be between 1 and 30 characters.`)
-                  return false;
-              }
-          }
+          message: 'Enter new role title: '
       },
       {
           type: 'input',
           name: 'salary',
-          message: 'What is the salary of the new role?',
+          message: 'Enter new role salary: ',
       },
       {
           type: 'list',
           name: 'department',
-          message: 'In which department is the new role?',
+          message: 'Enter new role department: ',
           choices: dep
       }
   ]).then(answers => {
       let departmentId;
       for (let i = 0; i < dep.length; i++) {
+        console.log()
           if (answers.department === dep[i].name) {
               departmentId = dep[i].id;
           }
@@ -431,3 +408,61 @@ function addRole() {
   });
 };
 
+
+function removeRole() {
+  getRoles()
+  .then(res => {
+    console.log(res);
+      const rolesData = [];
+      const rolesTitles = [];
+      for (let i = 0; i < res.length; i++) {
+          rolesData.push(res[i]);
+          rolesTitles.push(res[i].title)
+      }
+      removeRolePrompt(rolesData, rolesTitles);
+      //separation of concerns
+  })
+  //async will require a .catch block, unlike reg promise staments that can just thore the error
+  .catch(err => {
+      console.log(err);
+  })
+};
+
+
+//function to remove role
+function removeRolePrompt(roles, roleTitles){
+  inquirer.prompt([
+    //so sick of these stupid bugs. list type prompts do not work unless an input type comes beforehand. 
+    {
+      name: 'role_title',
+      type: 'input',
+      message: "Enter role title:"
+    },
+      {
+          type: 'list',
+          name: 'role',
+          message: 'Which role would you like to remove? ',
+          choices: roles
+      }
+    ])
+  .then(answers => {
+      let roleTitle;
+      for (let i = 0; i < roles.length; i++) {
+          if (answers.role === roles[i].title) {
+            
+              roleTitle = roles[i].title;
+          }
+      }
+      db.query(`DELETE FROM roles WHERE ?`, {
+        //key: value
+        title: roleTitle
+      }, 
+      (err, res) => {
+          if (err) throw err;
+          promptUser();
+      });
+  
+      promptUser();
+  
+  });
+};

@@ -26,7 +26,7 @@
   ❗  answer the prompts and compare responses to requests
 
   ## Screenshot
-  ![websiteScreenshot](./public/assets/img/screenshot.png)
+  https://drive.google.com/file/d/1Bk85u99G8w5WPK52phAY1XLCxnGnj8A0/view
 
   ## Questions
   👽 email me!<br />

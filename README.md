@@ -26,7 +26,7 @@
   ❗  answer the prompts and compare responses to requests
 
   ## Screenshot
-  https://drive.google.com/file/d/1Bk85u99G8w5WPK52phAY1XLCxnGnj8A0/view
+![USAGE](./assets/walkthrough.gif)
 
   ## Questions
   👽 email me!<br />
